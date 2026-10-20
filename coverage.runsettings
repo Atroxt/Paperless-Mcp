@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Einstellungen fuer die Testabdeckung, genutzt von
+  Microsoft.Testing.Extensions.CodeCoverage.
+
+  Den Aufrufbefehl zeigt README.md (XML-Kommentare vertragen keine
+  doppelten Bindestriche, deshalb steht er nicht hier).
+
+  Brokers/ und Program.cs sind bewusst NICHT ausgeschlossen: beide werden nicht
+  unit-getestet, sollen in der Auswertung aber sichtbar bleiben, statt die Quote
+  kuenstlich zu schoenen.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <CodeCoverage>
+            <ModulePaths>
+              <Exclude>
+                <!-- Die Testprojekte selbst zaehlen nicht zur Abdeckung -->
+                <ModulePath>.*Tests\.Units\.dll$</ModulePath>
+                <ModulePath>.*Tests\.Integrations\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+
+            <Attributes>
+              <Exclude>
+                <Attribute>^System\.Diagnostics\.DebuggerHiddenAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.DebuggerNonUserCodeAttribute$</Attribute>
+                <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.CodeAnalysis\.ExcludeFromCodeCoverageAttribute$</Attribute>
+              </Exclude>
+            </Attributes>
+
+            <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+            <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
+            <CollectFromChildProcesses>True</CollectFromChildProcesses>
+            <CollectAspDotNet>False</CollectAspDotNet>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

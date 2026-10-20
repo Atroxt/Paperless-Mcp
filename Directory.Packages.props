@@ -1,0 +1,34 @@
+<Project>
+
+  <!--
+    Central Package Management: alle NuGet-Versionen stehen hier, die csproj-Dateien
+    nennen nur noch Paketnamen. Ein Paket, eine Version, ein Ort zum Aendern.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="MCP">
+    <PackageVersion Include="ModelContextProtocol" Version="2.2.0" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="API-Broker und Exceptions">
+    <PackageVersion Include="RESTFulSense" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test-Stack: MSTest, Moq, AwesomeAssertions, DeepCloner, ObjectFiller">
+    <PackageVersion Include="MSTest" Version="4.5.1" />
+    <PackageVersion Include="Moq" Version="4.21.0" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
+    <PackageVersion Include="DeepCloner" Version="0.10.4" />
+    <PackageVersion Include="Tynamix.ObjectFiller" Version="1.5.9" />
+    <PackageVersion Include="Xeption" Version="2.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testabdeckung">
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
+  </ItemGroup>
+
+</Project>

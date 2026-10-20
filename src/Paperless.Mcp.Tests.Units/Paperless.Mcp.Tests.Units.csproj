@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Paperless.Mcp.Tests.Units</RootNamespace>
+    <AssemblyName>Paperless.Mcp.Tests.Units</AssemblyName>
+    <IsPackable>false</IsPackable>
+
+    <!-- Microsoft.Testing.Platform statt VSTest, passend zu global.json -->
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <!-- Versionen stehen zentral in Directory.Packages.props -->
+  <ItemGroup>
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="DeepCloner" />
+    <PackageReference Include="Tynamix.ObjectFiller" />
+    <PackageReference Include="Xeption" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Paperless.Mcp\Paperless.Mcp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+</Project>

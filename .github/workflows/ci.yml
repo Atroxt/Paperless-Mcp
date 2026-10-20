@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  # Jeder Push auf jeden Branch laeuft durch Build und Test. Das Veroeffentlichen
+  # haengt davon nicht ab, siehe die Bedingung am docker-Job.
+  #
+  # Kein pull_request-Trigger: jeder Branch laeuft hier ohnehin, und ein zweiter
+  # Trigger wuerde einen Branch mit offenem Pull Request doppelt pruefen. Der Preis
+  # ist, dass Pull Requests aus Forks ungeprueft bleiben -- fuer die feuert in diesem
+  # Repository kein push-Ereignis. Spielen Forks einmal eine Rolle, muss er zurueck.
+  push:
+    branches: ['**']
+    tags: ['v*']
+
+  workflow_dispatch:
+
+# Schiebt jemand mehrmals kurz hintereinander, laeuft nur der letzte Stand zu Ende.
+# Auf main und auf Tags wird NICHT abgebrochen: dort veroeffentlicht der docker-Job,
+# und einen Lauf mitten im Push eines Images abzubrechen hinterlaesst ein halbes
+# Manifest in der Registry.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: ghcr.io/atroxt/paperless-mcp
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Paperless-Mcp.slnx
+
+      - name: Build
+        run: dotnet build Paperless-Mcp.slnx -c Release --no-restore
+
+      - name: Test mit Testabdeckung
+        # MSTest auf Microsoft.Testing.Platform, konfiguriert ueber global.json.
+        # Die Integrationstests ueberspringen sich hier mangels Paperless-Instanz.
+        # Kein --coverage-output mit festem Namen: beide Testprojekte schrieben sonst
+        # in dieselbe Datei und der zweite Lauf ueberschriebe den ersten.
+        run: >
+          dotnet test Paperless-Mcp.slnx -c Release --no-build --
+          --coverage
+          --coverage-settings coverage.runsettings
+          --coverage-output-format cobertura
+
+      - name: Coverage-Berichte als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: '**/TestResults/*.cobertura.xml'
+          if-no-files-found: warn
+
+  docker:
+    needs: build-and-test
+
+    # Veroeffentlicht wird nur von main und von Tags. Ein Push auf einen Feature-Branch
+    # laeuft also durch Build und Test, schiebt aber kein Image nach ghcr.io -- sonst
+    # ueberschriebe jeder Zwischenstand das :latest, das andere gerade ziehen.
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version aus Paperless.Mcp.csproj bestimmen
+        id: version
+        run: |
+          version=$(grep -oPm1 '(?<=<Version>)[^<]+' src/Paperless.Mcp/Paperless.Mcp.csproj)
+          if [[ -z "$version" ]]; then
+            echo "::error::<Version> nicht in src/Paperless.Mcp/Paperless.Mcp.csproj gefunden"
+            exit 1
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/v* && "${GITHUB_REF_NAME#v}" != "$version" ]]; then
+            echo "::error::Git-Tag $GITHUB_REF_NAME passt nicht zur csproj-Version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Docker-Metadaten
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=latest
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Anmeldung bei GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          # Kontext ist die Repository-Wurzel: der Build braucht Directory.Build.props,
+          # Directory.Packages.props und NuGet.config
+          context: .
+          file: ./src/Paperless.Mcp/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    needs: docker
+
+    # Nur ein Tag ist ein Release. Erst nach dem docker-Job, damit das Release nie auf
+    # ein Image verweist, das es noch nicht gibt -- und der Abgleich Tag gegen
+    # csproj-Version dort schon bestanden ist.
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: GitHub-Release anlegen
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          # Ein Tag mit Bindestrich (v1.2.0-rc.1) ist eine Vorabversion und soll
+          # das "Latest Release"-Badge nicht uebernehmen.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          append_body: true
+          body: |
+            ## Docker
+
+            ```bash
+            docker pull ${{ env.IMAGE_NAME }}:${{ needs.docker.outputs.version }}
+            ```

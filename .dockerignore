@@ -1,0 +1,27 @@
+# Ohne diese Datei kopiert der Docker-Build die LOKALEN bin/ und obj/ mit in das Image
+# und ueberschreibt damit die project.assets.json, die der Restore im Container gerade
+# erzeugt hat. Der Build bricht dann mit einer Meldung ab, die nach einem Paketproblem
+# aussieht, aber keines ist:
+#
+#   Unable to find fallback package folder 'C:\Program Files (x86)\...\NuGetPackages'
+#
+# Der Pfad aus der Windows-Umgebung verraet, woher die Datei stammt. Auf einem frisch
+# geklonten Repository faellt das nicht auf -- dort gibt es noch kein obj/.
+**/bin/
+**/obj/
+**/TestResults/
+artifacts/
+
+# Werden im Image nicht gebraucht
+.git/
+.github/
+.vs/
+.idea/
+.vscode/
+docs/
+*.md
+**/*.user
+**/*.binlog
+
+# Enthaelt ein gueltiges API-Token und hat in einem Image nichts zu suchen
+src/Paperless.Mcp.Tests.Integrations/integration.runsettings

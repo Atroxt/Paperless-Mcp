@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Paperless.Mcp.Tests.Integrations/Paperless.Mcp.Tests.Integrations.csproj" />
+    <Project Path="src/Paperless.Mcp.Tests.Units/Paperless.Mcp.Tests.Units.csproj" />
+    <Project Path="src/Paperless.Mcp/Paperless.Mcp.csproj" />
+  </Folder>
+</Solution>

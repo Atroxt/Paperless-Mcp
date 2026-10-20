@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vorlage fuer die Integrationstests.
+
+  Kopieren nach integration.runsettings (ohne .example), Werte eintragen, dann:
+
+    dotnet test src/Paperless.Mcp.Tests.Integrations/Paperless.Mcp.Tests.Integrations.csproj
+      -c Release
+      (danach) --settings src/Paperless.Mcp.Tests.Integrations/integration.runsettings
+
+  Die Kopie ist in .gitignore eingetragen und gehoert NICHT ins Repository: sie
+  enthaelt ein gueltiges API-Token.
+
+  Ohne diese Datei beziehungsweise ohne die beiden Umgebungsvariablen melden sich die
+  Integrationstests als inconclusive ab. Sie legen Daten in der Instanz an und loeschen
+  sie wieder, deshalb bitte nur auf eine Testinstanz zeigen lassen.
+-->
+<RunSettings>
+  <RunConfiguration>
+    <EnvironmentVariables>
+      <PAPERLESS_TEST_BASE_URL>http://localhost:8000</PAPERLESS_TEST_BASE_URL>
+      <PAPERLESS_TEST_API_TOKEN>hier-das-token-der-testinstanz</PAPERLESS_TEST_API_TOKEN>
+    </EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>

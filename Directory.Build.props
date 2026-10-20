@@ -1,0 +1,48 @@
+<Project>
+
+  <!--
+    Zentrale Versionsverwaltung. Single source of truth ist <Version> in
+    src/Paperless.Mcp/Paperless.Mcp.csproj; CI liest sie von dort und injiziert sie
+    beim Docker-Build. Lokale Builds ohne gesetzte Version laufen als 0.0.0-local.
+  -->
+  <PropertyGroup>
+    <Version Condition="'$(Version)' == ''">0.0.0-local</Version>
+
+    <!-- AssemblyVersion vertraegt keine Prerelease-Suffixe: major.minor.patch extrahieren -->
+    <_VersionPrefix>$([System.Text.RegularExpressions.Regex]::Match($(Version), '^\d+\.\d+\.\d+').Value)</_VersionPrefix>
+    <_VersionPrefix Condition="'$(_VersionPrefix)' == ''">0.0.0</_VersionPrefix>
+
+    <AssemblyVersion>$(_VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(_VersionPrefix).0</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <PackageVersion>$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      CS1998: "async method lacks await operators".
+      Jede oeffentlich exponierte Methode gibt ValueTask/ValueTask<T> zurueck, auch
+      wenn intern nichts awaited wird, damit
+      Aufrufer sich nicht aendern muessen, wenn eine Implementierung spaeter echt
+      asynchron wird. Support-Broker ueber synchrone APIs (ILogger, DateTimeOffset)
+      loesen die Warnung zwangslaeufig aus. Bewusst projektweit unterdrueckt statt
+      durch Task.Run umgangen (Task.Run kostet Thread-Pool-Overhead ohne Nutzen).
+
+      CA1859: "Use concrete types when possible for improved performance".
+      Die Services arbeiten im RESTFulSense-Stil bewusst gegen Interfaces (Broker,
+      Services, Collections), damit Schichten austauschbar und in Tests mockbar
+      bleiben. Der minimale Performance-Gewinn konkreter Typen rechtfertigt den
+      Bruch dieser Konvention nicht.
+    -->
+    <NoWarn>$(NoWarn);CS1998;CA1859</NoWarn>
+  </PropertyGroup>
+
+</Project>

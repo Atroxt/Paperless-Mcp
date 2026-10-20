@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Single source of truth fuer die Release-Version, siehe Directory.Build.props -->
+    <Version>0.1.0</Version>
+    <RootNamespace>Paperless.Mcp</RootNamespace>
+    <AssemblyName>Paperless.Mcp</AssemblyName>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+
+    <!--
+      Damit das API-Token lokal nicht im Repository landet: dotnet user-secrets legt es
+      ausserhalb des Arbeitsverzeichnisses ab. Beide Host-Builder lesen User Secrets im
+      Development-Modus automatisch mit.
+    -->
+    <UserSecretsId>paperless-mcp-local</UserSecretsId>
+  </PropertyGroup>
+
+  <!-- Versionen stehen zentral in Directory.Packages.props -->
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <PackageReference Include="RESTFulSense" />
+    <PackageReference Include="Xeption" />
+  </ItemGroup>
+
+</Project>

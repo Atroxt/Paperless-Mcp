@@ -1,0 +1,70 @@
+# Paperless.Mcp als MCP-Server ueber HTTP.
+#
+#   cd docker
+#   cp .env.example .env     # PAPERLESS_BASE_URL eintragen
+#   docker compose up -d
+#
+# Danach liegt der Endpunkt unter http://localhost:5005/mcp
+#
+# WICHTIG: Hier steht absichtlich KEIN PAPERLESS_API_TOKEN. Im HTTP-Betrieb bringt
+# jede Anfrage ihr eigenes Token im Authorization-Header mit, und der Server faellt
+# bewusst NICHT auf ein konfiguriertes Token zurueck. Waere es anders, koennte jeder,
+# der den Port erreicht, die Dokumente des Betreibers lesen. Ein hier gesetztes Token
+# wuerde schlicht ignoriert.
+name: paperless-mcp
+
+services:
+  paperless-mcp:
+    image: ghcr.io/atroxt/paperless-mcp:latest
+    container_name: paperless-mcp
+    restart: unless-stopped
+
+    environment:
+      # Die Paperless-Instanz, mit der gesprochen wird. Pflicht.
+      PAPERLESS_BASE_URL: ${PAPERLESS_BASE_URL:?PAPERLESS_BASE_URL muss gesetzt sein, siehe .env.example}
+
+      # Port, auf dem der Server lauscht -- im Container wie auf dem Host.
+      MCP_PORT: ${MCP_PORT:-5005}
+
+      # Adresse, unter der der Server von aussen erreichbar ist. Hinter einem Reverse
+      # Proxy noetig, sonst zeigen die Download-Links ins interne Netz.
+      MCP_PUBLIC_URL: ${MCP_PUBLIC_URL:-}
+
+      # Lebensdauer eines Einmal-Links zum Herunterladen, in Sekunden.
+      DOWNLOAD_LINK_LIFETIME_SECONDS: ${DOWNLOAD_LINK_LIFETIME_SECONDS:-300}
+
+      # Obergrenze fuer Treffer je Seite bei der Dokumentsuche.
+      MAX_PAGE_SIZE: ${MAX_PAGE_SIZE:-100}
+
+      # Timeout fuer Anfragen an Paperless, in Sekunden.
+      HTTP_TIMEOUT_SECONDS: ${HTTP_TIMEOUT_SECONDS:-30}
+
+    ports:
+      - "${MCP_PORT:-5005}:${MCP_PORT:-5005}"
+
+    # Prueft nur, dass der Port Verbindungen annimmt -- mehr geht nicht, das
+    # Runtime-Image bringt weder curl noch wget mit. Ein echter MCP-Aufruf braeuchte
+    # ausserdem ein gueltiges Token, und das gehoert nicht in einen Healthcheck.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/${MCP_PORT:-5005}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Laeuft Paperless in einem eigenen Compose-Projekt, muss dieser Container in dessen
+# Netz: Namen mit `docker network ls` nachsehen, hier eintragen und beim Service
+# `networks: [paperless]` ergaenzen. PAPERLESS_BASE_URL zeigt dann auf den
+# Service-Namen, etwa http://webserver:8000 -- nicht auf localhost, das waere dieser
+# Container selbst.
+#
+# networks:
+#   paperless:
+#     name: <netz-des-paperless-projekts>
+#     external: true

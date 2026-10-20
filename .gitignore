@@ -1,0 +1,41 @@
+﻿## Build-Ergebnisse
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Ll]og/
+TestResults/
+artifacts/
+*.binlog
+
+## Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+.vscode/*
+!.vscode/extensions.json
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+
+## Lokale Konfiguration und Geheimnisse
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+.env.*
+!.env.example
+
+## Betriebssystem
+Thumbs.db
+desktop.ini
+.DS_Store
+
+## Enthaelt das API-Token der Testinstanz. Vorlage: gleiche Datei mit .example
+src/Paperless.Mcp.Tests.Integrations/integration.runsettings
+/.sonarqube
+/scripts
