@@ -51,6 +51,7 @@ if (useStdio)
     builder.Services
         .AddMcpServer()
         .WithStdioServerTransport()
+        .WithRequestFilters(filters => filters.AddCallToolFilter(ToolCallLogging.LogToolCalls))
         .WithTools<TagTools>()
         .WithTools<HealthTools>()
         .WithTools<StatisticTools>()
@@ -110,6 +111,7 @@ else
             // Stateless: jeder Request bringt sein eigenes Token mit, serverseitige
             // Sitzungen gibt es damit nicht.
             options.SessionMode = HttpServerSessionMode.Stateless)
+        .WithRequestFilters(filters => filters.AddCallToolFilter(ToolCallLogging.LogToolCalls))
         .WithTools<TagTools>()
         .WithTools<HealthTools>()
         .WithTools<StatisticTools>()

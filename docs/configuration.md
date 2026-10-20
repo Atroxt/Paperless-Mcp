@@ -73,3 +73,43 @@ Umgebungsvariablen haben weiterhin Vorrang.
 
 Ein Token erzeugt man in Paperless-ngx im Benutzerprofil (Zahnrad → **My Profile** →
 *API Auth Token*) oder über die Django-Administration.
+
+## Logging
+
+Der Server schreibt je Tool-Aufruf genau eine Zeile in der Kategorie
+`Paperless.Mcp.ToolCalls`:
+
+```text
+info: Paperless.Mcp.ToolCalls[...]
+      Tool paperless_documents_search in 142 ms (IsError = False)
+```
+
+Wirft ein Tool eine Exception, erscheint stattdessen eine Warnung mit Stacktrace
+(`Tool <name> nach <n> ms fehlgeschlagen`). Token oder Argumente werden nicht geloggt.
+
+Die eigenen Logs des MCP-SDK (Kategorie `ModelContextProtocol`, z. B.
+`method 'tools/call' request handler called.`) stehen per Default auf `Warning`, weil sie
+pro Aufruf mehrere Zeilen erzeugen und nichts Zusätzliches verraten.
+
+Die Log-Level lassen sich über `appsettings.json` (`Logging:LogLevel:<Kategorie>`) oder
+Umgebungsvariablen steuern; `__` ersetzt dabei den Doppelpunkt:
+
+| Variable | Default | Bedeutung |
+| --- | --- | --- |
+| `Logging__LogLevel__Default` | `Information` | Grundlevel für alle Kategorien |
+| `Logging__LogLevel__Microsoft.AspNetCore` | `Warning` | ASP.NET-Core-Infrastruktur |
+| `Logging__LogLevel__ModelContextProtocol` | `Warning` | Interne Logs des MCP-SDK; `Information` oder `Debug` zur Fehlersuche |
+| `Logging__LogLevel__Paperless.Mcp.ToolCalls` | `Information` | Eine Zeile je Tool-Aufruf; `Warning` zeigt nur noch Fehler, `None` schaltet ab |
+
+Beispiel für `docker-compose.yml`:
+
+```yaml
+services:
+  paperless-mcp:
+    image: ghcr.io/atroxt/paperless-mcp:latest
+    environment:
+      Logging__LogLevel__ModelContextProtocol: Warning
+      Logging__LogLevel__Paperless.Mcp.ToolCalls: Information
+```
+
+Im stdio-Transport gehen alle Logs nach stderr, weil stdout das Protokoll selbst trägt.
