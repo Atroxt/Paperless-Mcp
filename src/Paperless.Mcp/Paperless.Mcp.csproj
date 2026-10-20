@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- Single source of truth fuer die Release-Version, siehe Directory.Build.props -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <RootNamespace>Paperless.Mcp</RootNamespace>
     <AssemblyName>Paperless.Mcp</AssemblyName>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -21,6 +21,11 @@
     <PackageReference Include="ModelContextProtocol.AspNetCore" />
     <PackageReference Include="RESTFulSense" />
     <PackageReference Include="Xeption" />
+  </ItemGroup>
+
+  <!-- Server-Innenleben bleibt internal, die Unit-Tests duerfen trotzdem ran -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Paperless.Mcp.Tests.Units" />
   </ItemGroup>
 
 </Project>

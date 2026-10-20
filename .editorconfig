@@ -1,0 +1,6 @@
+root = true
+
+[*.cs]
+# IDE0028: Collection-Initialisierung vereinfachen (z. B. "new()" -> "[]").
+# Bewusst aus: explizites "new()" bleibt erlaubt.
+dotnet_diagnostic.IDE0028.severity = none
