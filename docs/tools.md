@@ -51,6 +51,7 @@ beiden Pfad-Werkzeuge gibt es nur dort, den Einmal-Link nur im HTTP-Transport.
 | `paperless_tasks_get` | Verarbeitungsauftrag nachschlagen |
 | `paperless_documents_upload_from_path` | Datei vom Pfad hochladen — **nur stdio** |
 | `paperless_documents_download_to_path` | Dokument in eine Datei schreiben — **nur stdio** |
+| `paperless_documents_upload_link` | Einmal-Link zum Hochladen großer Dateien — **nur HTTP** |
 
 `paperless_ping` antwortet **auch dann mit einem Bericht, wenn die Verbindung kaputt
 ist** — ein Health-Check, der bei einem Fehler wirft, wäre nutzlos. Er unterscheidet
@@ -110,6 +111,28 @@ oder überschreiben. Deshalb zwei Linien:
 
 Der Schalter ist bewusst **nicht** über eine Umgebungsvariable setzbar — genau wie
 `Mcp:RequireRequestToken`. Der Transport entscheidet, nicht die Umgebung.
+
+## Große Dateien hochladen
+
+Base64 in einem Tool-Argument taugt nur für kleine Dateien: es bläht um ein Drittel auf
+und schleust jedes Byte durch das Sprachmodell. Für große Dateien (100 MB und mehr):
+
+- **stdio:** `paperless_documents_upload_from_path` streamt die Datei direkt von der
+  Platte zu Paperless, ohne sie in den Speicher zu laden.
+- **HTTP:** `paperless_documents_upload_link` liefert eine URL, an die der Aufrufer die
+  Datei selbst schickt — das Modell sieht nur URL und Task-Id:
+
+  ```
+  curl -F "document=@rechnung.pdf" https://mcp.example/uploads/<id>
+  ```
+
+  Der Link braucht kein Token (er trägt das des Ausstellers), gilt genau einmal und
+  läuft nach `UPLOAD_LINK_LIFETIME_SECONDS` (Default 900) ab. Das Größenlimit
+  `MAX_UPLOAD_MEGABYTES` (Default 200) gilt nur für diese Route, nicht für `/mcp`.
+  Antwort: `{ "taskId": "..." }`, weiter mit `paperless_tasks_get`.
+
+Die Übertragung zu Paperless hat ein eigenes Timeout `UPLOAD_TIMEOUT_SECONDS`
+(Default 600), unabhängig vom normalen 30-Sekunden-Timeout.
 
 ## Herunterladen: der Einmal-Link
 

@@ -4,6 +4,7 @@ namespace Paperless.Mcp.Brokers.Files
     public interface IFileBroker
     {
         ValueTask<byte[]> ReadAllBytesAsync(string path);
+        ValueTask<Stream> OpenReadAsync(string path);
         ValueTask WriteAllBytesAsync(string path, byte[] content);
         ValueTask<bool> ExistsAsync(string path);
     }

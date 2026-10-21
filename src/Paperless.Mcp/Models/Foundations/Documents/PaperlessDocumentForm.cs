@@ -11,6 +11,8 @@ namespace Paperless.Mcp.Models.Foundations.Documents
     {
         public byte[] Document { get; set; } = [];
 
+        public Stream? DocumentStream { get; set; }
+
         public string FileName { get; set; } = string.Empty;
 
         public string? Title { get; set; }

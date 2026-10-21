@@ -83,8 +83,10 @@ namespace Paperless.Mcp.Tests.Units.Services.Processings.Documents
             this.fileBrokerMock.Setup(broker => broker.ExistsAsync(filePath))
                 .ReturnsAsync(true);
 
-            this.fileBrokerMock.Setup(broker => broker.ReadAllBytesAsync(filePath))
-                .ReturnsAsync(fileContent);
+            using var fileStream = new MemoryStream(fileContent);
+
+            this.fileBrokerMock.Setup(broker => broker.OpenReadAsync(filePath))
+                .ReturnsAsync(fileStream);
 
             this.documentServiceMock.Setup(service =>
                 service.AddDocumentFileAsync(It.IsAny<DocumentUpload>()))
@@ -102,11 +104,11 @@ namespace Paperless.Mcp.Tests.Units.Services.Processings.Documents
                 service.AddDocumentFileAsync(It.Is<DocumentUpload>(upload =>
                     upload.FileName == "rechnung.pdf"
                     && upload.Title == "Rechnung"
-                    && upload.Content.Length == fileContent.Length)),
+                    && upload.ContentStream == fileStream)),
                         Times.Once);
 
             this.fileBrokerMock.Verify(broker => broker.ExistsAsync(filePath), Times.Once);
-            this.fileBrokerMock.Verify(broker => broker.ReadAllBytesAsync(filePath), Times.Once);
+            this.fileBrokerMock.Verify(broker => broker.OpenReadAsync(filePath), Times.Once);
 
             this.fileBrokerMock.VerifyNoOtherCalls();
             this.documentServiceMock.VerifyNoOtherCalls();
@@ -134,7 +136,7 @@ namespace Paperless.Mcp.Tests.Units.Services.Processings.Documents
             this.fileBrokerMock.Verify(broker => broker.ExistsAsync(filePath), Times.Once);
 
             this.fileBrokerMock.Verify(broker =>
-                broker.ReadAllBytesAsync(It.IsAny<string>()),
+                broker.OpenReadAsync(It.IsAny<string>()),
                     Times.Never);
 
             this.fileBrokerMock.VerifyNoOtherCalls();

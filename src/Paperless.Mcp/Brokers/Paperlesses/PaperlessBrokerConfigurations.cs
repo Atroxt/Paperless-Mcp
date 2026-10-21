@@ -10,6 +10,8 @@ namespace Paperless.Mcp.Brokers.Paperlesses
 
         public int HttpTimeoutSeconds { get; set; } = DefaultHttpTimeoutSeconds;
 
+        public int UploadTimeoutSeconds { get; set; } = DefaultUploadTimeoutSeconds;
+
         // Im HTTP-Transport muss jede MCP-Anfrage ihr eigenes Token mitbringen, siehe
         // PaperlessAuthHandler. Bewusst nur aus der IConfiguration gelesen und nicht aus
         // einer Umgebungsvariablen: der Transport entscheidet das, nicht die Umgebung --
@@ -17,6 +19,10 @@ namespace Paperless.Mcp.Brokers.Paperlesses
         public bool RequireRequestToken { get; set; }
 
         public const int DefaultHttpTimeoutSeconds = 30;
+
+        public const int DefaultUploadTimeoutSeconds = 600;
+
+        public const string UploadTimeoutSecondsVariable = "UPLOAD_TIMEOUT_SECONDS";
 
         public const string RequireRequestTokenKey = "Mcp:RequireRequestToken";
     }

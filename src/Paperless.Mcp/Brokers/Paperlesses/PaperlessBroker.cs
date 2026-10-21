@@ -12,6 +12,10 @@ namespace Paperless.Mcp.Brokers.Paperlesses
         private readonly IRESTFulApiFactoryClient apiClient;
         private readonly HttpClient httpClient;
 
+        // Eigener Client fuer Uploads: eine 100-MB-PDF braucht laenger als die
+        // allgemeinen 30 Sekunden, und HttpClient.Timeout gilt fuer alle Anfragen.
+        private readonly HttpClient uploadHttpClient;
+
         // snake_case ist die Sprache der Paperless-API und gehoert damit in den Broker,
         // nicht in die Modelle.
         private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -42,6 +46,18 @@ namespace Paperless.Mcp.Brokers.Paperlesses
 
             this.httpClient = httpClient;
             this.apiClient = new RESTFulApiFactoryClient(httpClient);
+
+            var uploadHttpClient = new HttpClient(
+                new PaperlessAuthHandler(configurations, httpContextAccessor))
+            {
+                BaseAddress = httpClient.BaseAddress,
+                Timeout = TimeSpan.FromSeconds(configurations.UploadTimeoutSeconds),
+            };
+
+            uploadHttpClient.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+
+            this.uploadHttpClient = uploadHttpClient;
         }
 
         private static PaperlessBrokerConfigurations ReadConfigurations(IConfiguration configuration)
@@ -69,11 +85,23 @@ namespace Paperless.Mcp.Brokers.Paperlesses
                     : configuration.GetValue<int?>("Paperless:HttpTimeoutSeconds")
                       ?? PaperlessBrokerConfigurations.DefaultHttpTimeoutSeconds;
 
+            string? configuredUploadTimeout =
+                Environment.GetEnvironmentVariable(
+                    PaperlessBrokerConfigurations.UploadTimeoutSecondsVariable);
+
+            int uploadTimeoutSeconds =
+                int.TryParse(configuredUploadTimeout, out int parsedUploadTimeout)
+                && parsedUploadTimeout > 0
+                    ? parsedUploadTimeout
+                    : configuration.GetValue<int?>("Paperless:UploadTimeoutSeconds")
+                      ?? PaperlessBrokerConfigurations.DefaultUploadTimeoutSeconds;
+
             return new PaperlessBrokerConfigurations
             {
                 BaseUrl = baseUrl,
                 ApiToken = apiToken,
                 HttpTimeoutSeconds = timeoutSeconds,
+                UploadTimeoutSeconds = uploadTimeoutSeconds,
 
                 // Bewusst ohne Umgebungsvariable: setzt Program.cs anhand des Transports.
                 RequireRequestToken = configuration.GetValue<bool>(
@@ -126,16 +154,23 @@ namespace Paperless.Mcp.Brokers.Paperlesses
         // Multipart von Hand. ExecuteHttpCallAsync uebernimmt dabei die
         // Statuscode-Uebersetzung von RESTFulSense, sodass dieselben typisierten
         // HttpResponse*Exception entstehen wie bei allen anderen Aufrufen.
+        //
+        // Mit Stream wird die Datei ungepuffert durchgereicht: eine 100-MB-PDF liegt
+        // dann nie als Ganzes im Arbeitsspeicher.
         private async ValueTask<TResult> PostFileAsync<TResult>(
             string relativeUrl,
             byte[] fileContent,
+            Stream? fileStream,
             string fileName,
             IReadOnlyDictionary<string, string> fields)
         {
             using var formContent = new MultipartFormDataContent();
-            using var fileByteContent = new ByteArrayContent(fileContent);
 
-            formContent.Add(fileByteContent, name: "document", fileName: fileName);
+            using HttpContent fileHttpContent = fileStream is not null
+                ? new StreamContent(fileStream)
+                : new ByteArrayContent(fileContent);
+
+            formContent.Add(fileHttpContent, name: "document", fileName: fileName);
 
             foreach ((string name, string value) in fields)
             {
@@ -143,7 +178,7 @@ namespace Paperless.Mcp.Brokers.Paperlesses
             }
 
             using HttpResponseMessage response = await this.apiClient.ExecuteHttpCallAsync(
-                this.httpClient.PostAsync(relativeUrl, formContent));
+                this.uploadHttpClient.PostAsync(relativeUrl, formContent));
 
             string responseBody = await response.Content.ReadAsStringAsync();
 

@@ -3,6 +3,7 @@ using Paperless.Mcp.Exposers.Middlewares;
 using Paperless.Mcp.Exposers.Startups;
 using Paperless.Mcp.Exposers.Tools;
 using Paperless.Mcp.Models.Foundations.DownloadLinks;
+using Paperless.Mcp.Models.Foundations.UploadLinks;
 using Paperless.Mcp.Models.Orchestrations.Capabilities;
 using Paperless.Mcp.Models.Processings.Documents;
 using Paperless.Mcp.Brokers.Paperlesses;
@@ -99,6 +100,7 @@ else
     RegisterProcessingServices(builder.Services, builder.Configuration);
     RegisterOrchestrationServices(builder.Services);
     RegisterDownloadLinks(builder.Services, builder.Configuration);
+    RegisterUploadLinks(builder.Services, builder.Configuration);
 
     RegisterCapabilities(
         builder.Services,
@@ -129,7 +131,10 @@ else
         // Der Einmal-Link ist im HTTP-Betrieb die Antwort auf "gib mir die Datei".
         // Im stdio-Zweig gibt es keinen Server, der ihn bedienen koennte -- dort
         // schreibt DocumentFileTools direkt auf die Platte.
-        .WithTools<DownloadLinkTools>();
+        .WithTools<DownloadLinkTools>()
+
+        // Gegenstueck fuer grosse Dateien: sie gehen nicht als Base64 durch das Modell.
+        .WithTools<UploadLinkTools>();
 
     var app = builder.Build();
 
@@ -150,6 +155,11 @@ else
     // ist der Ausweis -- unraetbar (32 Zufallsbytes), kurzlebig und genau einmal
     // einloesbar -- und er traegt das Token dessen, der ihn angefordert hat.
     app.MapGet(DownloadLinkConfigurations.RoutePrefix + "/{id}", RedeemDownloadLinkAsync);
+
+    // Der Upload-Link, aus denselben Gruenden ohne Token-Pflicht. Das hoehere
+    // Groessenlimit setzt der Handler nur fuer diese Route.
+    app.MapPost(UploadLinkConfigurations.RoutePrefix + "/{id}", RedeemUploadLinkAsync)
+        .DisableAntiforgery();
 
     var port = ResolvePort(app.Configuration);
 

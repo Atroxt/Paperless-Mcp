@@ -5,7 +5,9 @@ using Paperless.Mcp.Brokers.DownloadLinks;
 using Paperless.Mcp.Brokers.Files;
 using Paperless.Mcp.Brokers.Loggings;
 using Paperless.Mcp.Brokers.Paperlesses;
+using Paperless.Mcp.Brokers.UploadLinks;
 using Paperless.Mcp.Models.Foundations.DownloadLinks;
+using Paperless.Mcp.Models.Foundations.UploadLinks;
 using Paperless.Mcp.Models.Orchestrations.Capabilities;
 using Paperless.Mcp.Models.Processings.Documents;
 using Paperless.Mcp.Services.Foundations.Correspondents;
@@ -19,6 +21,7 @@ using Paperless.Mcp.Services.Foundations.Statistics;
 using Paperless.Mcp.Services.Foundations.StoragePaths;
 using Paperless.Mcp.Services.Foundations.Tags;
 using Paperless.Mcp.Services.Foundations.Tasks;
+using Paperless.Mcp.Services.Foundations.UploadLinks;
 using Paperless.Mcp.Services.Orchestrations.Capabilities;
 using Paperless.Mcp.Services.Orchestrations.Documents;
 using Paperless.Mcp.Services.Processings.Correspondents;
@@ -133,6 +136,13 @@ namespace Paperless.Mcp.Exposers.Startups
                 DownloadLinkLifetimeSeconds = isStdio
                     ? 0
                     : ResolveLinkLifetimeSeconds(configuration),
+
+                // Upload-Links gibt es wie Download-Links nur im HTTP-Zweig.
+                UploadLinks = transport == CapabilityConfigurations.HttpTransport,
+
+                MaxUploadLinkBytes = isStdio
+                    ? 0
+                    : ResolveMaxUploadBytes(configuration),
             });
 
             services.AddTransient<ICapabilityOrchestrationService, CapabilityOrchestrationService>();
@@ -157,6 +167,47 @@ namespace Paperless.Mcp.Exposers.Startups
             });
 
             services.AddTransient<IDownloadLinkService, DownloadLinkService>();
+        }
+
+        public static void RegisterUploadLinks(
+            IServiceCollection services,
+            IConfiguration configuration)
+        {
+            // Singleton aus demselben Grund wie beim DownloadLinkBroker.
+            services.AddSingleton<IUploadLinkBroker, UploadLinkBroker>();
+
+            var configured = Environment.GetEnvironmentVariable(
+                UploadLinkConfigurations.LifetimeSecondsVariable)
+                ?? configuration.GetValue<string>("Mcp:UploadLinkLifetimeSeconds");
+
+            services.AddSingleton(new UploadLinkConfigurations
+            {
+                LifetimeSeconds = int.TryParse(configured, out var parsed) && parsed > 0
+                    ? parsed
+                    : UploadLinkConfigurations.DefaultLifetimeSeconds,
+
+                MaxUploadBytes = ResolveMaxUploadBytes(configuration),
+
+                PublicUrl = Environment.GetEnvironmentVariable(
+                    DownloadLinkConfigurations.PublicUrlVariable)
+                    ?? configuration.GetValue<string>("Mcp:PublicUrl")
+                    ?? string.Empty,
+            });
+
+            services.AddTransient<IUploadLinkService, UploadLinkService>();
+        }
+
+        private static long ResolveMaxUploadBytes(IConfiguration configuration)
+        {
+            var configured = Environment.GetEnvironmentVariable(
+                UploadLinkConfigurations.MaxUploadMegabytesVariable)
+                ?? configuration.GetValue<string>("Mcp:MaxUploadMegabytes");
+
+            int megabytes = int.TryParse(configured, out var parsed) && parsed > 0
+                ? parsed
+                : UploadLinkConfigurations.DefaultMaxUploadMegabytes;
+
+            return megabytes * 1024L * 1024L;
         }
 
         // Die Version, die der Build hineingeschrieben hat -- siehe Directory.Build.props.

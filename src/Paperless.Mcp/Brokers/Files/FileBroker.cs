@@ -5,6 +5,15 @@ namespace Paperless.Mcp.Brokers.Files
         public async ValueTask<byte[]> ReadAllBytesAsync(string path) =>
             await File.ReadAllBytesAsync(path);
 
+        public async ValueTask<Stream> OpenReadAsync(string path) =>
+            new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 81920,
+                useAsync: true);
+
         public async ValueTask WriteAllBytesAsync(string path, byte[] content) =>
             await File.WriteAllBytesAsync(path, content);
 

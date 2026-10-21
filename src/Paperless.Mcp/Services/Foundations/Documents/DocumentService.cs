@@ -207,6 +207,7 @@ namespace Paperless.Mcp.Services.Foundations.Documents
             new()
             {
                 Document = documentUpload.Content,
+                DocumentStream = documentUpload.ContentStream,
                 FileName = documentUpload.FileName,
                 Title = documentUpload.Title,
                 Correspondent = documentUpload.CorrespondentId?.ToString(),

@@ -37,7 +37,8 @@ namespace Paperless.Mcp.Services.Foundations.Documents
 
             Validate(
                 (Rule: IsInvalid(documentUpload.FileName), Parameter: nameof(DocumentUpload.FileName)),
-                (Rule: IsEmpty(documentUpload.Content), Parameter: nameof(DocumentUpload.Content)));
+                (Rule: IsEmpty(documentUpload.Content, documentUpload.ContentStream),
+                    Parameter: nameof(DocumentUpload.Content)));
         }
 
         private static void ValidateDocumentUploadIsNotNull(DocumentUpload documentUpload)
@@ -54,9 +55,9 @@ namespace Paperless.Mcp.Services.Foundations.Documents
             Message = "Text is required",
         };
 
-        private static dynamic IsEmpty(byte[] content) => new
+        private static dynamic IsEmpty(byte[] content, Stream? contentStream) => new
         {
-            Condition = content is null || content.Length is 0,
+            Condition = contentStream is null && (content is null || content.Length is 0),
             Message = "File content is required",
         };
 

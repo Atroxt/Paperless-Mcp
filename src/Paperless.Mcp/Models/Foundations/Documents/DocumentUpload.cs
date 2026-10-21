@@ -12,6 +12,11 @@ namespace Paperless.Mcp.Models.Foundations.Documents
 
         public byte[] Content { get; set; } = [];
 
+        // Alternative zu Content fuer grosse Dateien: wird ungepuffert an Paperless
+        // durchgereicht. Ist er gesetzt, bleibt Content unbeachtet. Den Stream besitzt
+        // der Aufrufer, er schliesst ihn auch.
+        public Stream? ContentStream { get; set; }
+
         public string? Title { get; set; }
 
         public int? CorrespondentId { get; set; }

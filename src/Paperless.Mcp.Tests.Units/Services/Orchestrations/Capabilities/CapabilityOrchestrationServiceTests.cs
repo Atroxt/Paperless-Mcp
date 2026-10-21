@@ -16,6 +16,7 @@ namespace Paperless.Mcp.Tests.Units.Services.Orchestrations.Capabilities
     {
         private const int MaxPageSize = 100;
         private const int LinkLifetimeSeconds = 300;
+        private const long MaxUploadLinkBytes = 200L * 1024 * 1024;
 
         private readonly Mock<IHealthProcessingService> healthProcessingServiceMock;
 
@@ -34,6 +35,10 @@ namespace Paperless.Mcp.Tests.Units.Services.Orchestrations.Capabilities
                     RequiresRequestToken = transport == CapabilityConfigurations.HttpTransport,
                     MaxPageSize = MaxPageSize,
                     DownloadLinkLifetimeSeconds = LinkLifetimeSeconds,
+                    UploadLinks = transport == CapabilityConfigurations.HttpTransport,
+                    MaxUploadLinkBytes = transport == CapabilityConfigurations.HttpTransport
+                        ? MaxUploadLinkBytes
+                        : 0,
                 });
 
         [TestMethod]
@@ -67,6 +72,8 @@ namespace Paperless.Mcp.Tests.Units.Services.Orchestrations.Capabilities
             actualCapabilities.RequiresRequestToken.Should().BeTrue();
             actualCapabilities.MaxPageSize.Should().Be(MaxPageSize);
             actualCapabilities.DownloadLinkLifetimeSeconds.Should().Be(LinkLifetimeSeconds);
+            actualCapabilities.UploadLinks.Should().BeTrue();
+            actualCapabilities.MaxUploadLinkBytes.Should().Be(MaxUploadLinkBytes);
 
             // Die Grenzen kommen aus den Diensten, die sie durchsetzen -- nicht aus einer
             // zweiten Zahl, die irgendwann auseinanderliefe.

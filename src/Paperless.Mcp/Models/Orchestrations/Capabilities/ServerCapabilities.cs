@@ -36,6 +36,12 @@ namespace Paperless.Mcp.Models.Orchestrations.Capabilities
 
         public int DownloadLinkLifetimeSeconds { get; set; }
 
+        // Gibt es Einmal-Links zum Hochladen grosser Dateien? Nur im HTTP-Betrieb.
+        public bool UploadLinks { get; set; }
+
+        // Groesste Datei, die ein Upload-Link annimmt. 0, wenn es keine gibt.
+        public long MaxUploadLinkBytes { get; set; }
+
         public string Summary { get; set; } = string.Empty;
     }
 }

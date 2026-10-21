@@ -166,7 +166,10 @@ namespace Paperless.Mcp.Exposers.Tools
         [Description(
             "Uploads a file to Paperless-ngx. Paperless processes it in the background "
             + "and answers with a task id, not with a document; use paperless_tasks_get "
-            + "with that id to see when the document exists and which id it got.")]
+            + "with that id to see when the document exists and which id it got. Only "
+            + "for small files: for anything larger than a few MB use "
+            + "paperless_documents_upload_link (HTTP) or "
+            + "paperless_documents_upload_from_path (stdio).")]
         public async ValueTask<string> UploadDocumentAsync(
             [Description("File name including the extension, for example rechnung.pdf.")] string fileName,
             [Description("File content, Base64 encoded.")] string contentBase64,

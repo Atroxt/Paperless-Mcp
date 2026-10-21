@@ -27,6 +27,7 @@ namespace Paperless.Mcp.Brokers.Paperlesses
             await PostFileAsync<string>(
                 relativeUrl: $"{DocumentsRelativeUrl}post_document/",
                 fileContent: documentForm.Document,
+                fileStream: documentForm.DocumentStream,
                 fileName: documentForm.FileName,
                 fields: BuildFormFields(documentForm));
 

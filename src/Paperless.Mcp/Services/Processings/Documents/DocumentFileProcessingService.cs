@@ -41,12 +41,14 @@ namespace Paperless.Mcp.Services.Processings.Documents
                         message: $"No file found at '{filePath}'.");
                 }
 
-                byte[] content = await this.fileBroker.ReadAllBytesAsync(filePath);
+                // Gestreamt statt ganz gelesen: grosse PDFs liegen so nie komplett im
+                // Arbeitsspeicher.
+                await using Stream contentStream = await this.fileBroker.OpenReadAsync(filePath);
 
                 return await this.documentService.AddDocumentFileAsync(new DocumentUpload
                 {
                     FileName = Path.GetFileName(filePath),
-                    Content = content,
+                    ContentStream = contentStream,
                     Title = title,
                     CorrespondentId = correspondentId,
                     DocumentTypeId = documentTypeId,

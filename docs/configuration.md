@@ -53,6 +53,13 @@ Umgebungsvariablen haben Vorrang vor `appsettings.json`.
 | `MCP_PORT` | `Mcp:Port` | `5005` | Port des HTTP-Transports |
 | `MCP_PUBLIC_URL` | `Mcp:PublicUrl` | Adresse aus der Anfrage | Basis-URL für Download-Links, nötig hinter einem Reverse Proxy |
 | `DOWNLOAD_LINK_LIFETIME_SECONDS` | `Mcp:DownloadLinkLifetimeSeconds` | `300` | Gültigkeitsdauer eines Download-Links |
+| `UPLOAD_LINK_LIFETIME_SECONDS` | `Mcp:UploadLinkLifetimeSeconds` | `900` | Gültigkeitsdauer eines Upload-Links |
+| `MAX_UPLOAD_MEGABYTES` | `Mcp:MaxUploadMegabytes` | `200` | Größte Datei, die ein Upload-Link annimmt (gilt nur für `/uploads/{id}`) |
+| `UPLOAD_TIMEOUT_SECONDS` | `Paperless:UploadTimeoutSeconds` | `600` | Timeout für die Übertragung einer Datei an Paperless |
+
+Hinter einem Reverse Proxy muss dessen Größenlimit für `/uploads/` mindestens
+`MAX_UPLOAD_MEGABYTES` erlauben (nginx: `client_max_body_size 200m;`, dazu ein
+ausreichendes `proxy_read_timeout`), sonst bricht der Proxy große Uploads vorher ab.
 
 Ohne `PAPERLESS_BASE_URL` bricht der Server beim ersten Zugriff auf die Paperless-API mit
 einer klaren Meldung ab. Ein **fehlendes Token ist dagegen kein Startfehler**: Paperless

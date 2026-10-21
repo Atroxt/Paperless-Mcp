@@ -47,6 +47,9 @@ namespace Paperless.Mcp.Services.Orchestrations.Capabilities
 
                     DownloadLinkLifetimeSeconds =
                         this.configurations.DownloadLinkLifetimeSeconds,
+
+                    UploadLinks = this.configurations.UploadLinks,
+                    MaxUploadLinkBytes = this.configurations.MaxUploadLinkBytes,
                 };
 
                 capabilities.Summary = Describe(capabilities);

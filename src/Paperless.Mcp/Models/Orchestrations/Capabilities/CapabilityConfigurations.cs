@@ -19,6 +19,10 @@ namespace Paperless.Mcp.Models.Orchestrations.Capabilities
 
         public int DownloadLinkLifetimeSeconds { get; set; }
 
+        public bool UploadLinks { get; set; }
+
+        public long MaxUploadLinkBytes { get; set; }
+
         public const string StdioTransport = "stdio";
 
         public const string HttpTransport = "http";

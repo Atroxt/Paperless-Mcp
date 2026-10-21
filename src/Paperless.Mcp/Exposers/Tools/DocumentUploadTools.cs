@@ -27,7 +27,9 @@ namespace Paperless.Mcp.Exposers.Tools
             + "new document. Prefer this over paperless_documents_upload when you want to "
             + "work with the document afterwards. If processing takes longer than the "
             + "timeout, the upload keeps running and the result carries the task id to "
-            + "follow it with paperless_tasks_get.")]
+            + "follow it with paperless_tasks_get. Only for small files: for anything "
+            + "larger than a few MB use paperless_documents_upload_link (HTTP) or "
+            + "paperless_documents_upload_from_path (stdio).")]
         public async ValueTask<DocumentUploadResult> AddDocumentAndAwaitAsync(
             [Description("File content, Base64 encoded.")] string contentBase64,
             [Description("File name including the extension, for example invoice.pdf.")] string fileName,
