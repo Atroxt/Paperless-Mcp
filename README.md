@@ -11,7 +11,7 @@ Paperless-REST-API als Tools für KI-Assistenten verfügbar — lokal über stdi
 
 ## Features
 
-- **Über 40 Tools** für Dokumente, Tags, Korrespondenten, Dokumenttypen, Ablagepfade, Felddefinitionen, Aufträge und Statistiken
+- **Über 40 Tools** für Dokumente, Notizen, Tags, Korrespondenten, Dokumenttypen, Ablagepfade, Felddefinitionen, Aufträge und Statistiken
 - **Zwei Transporte:** stdio für Claude Desktop, Streamable HTTP für den gehosteten Betrieb
 - **Sicher löschen:** destruktive Vorgänge laufen per Default als Trockenlauf und nennen die Tragweite
 - **Hochladen und warten** in einem Aufruf, inklusive Auftragsverfolgung

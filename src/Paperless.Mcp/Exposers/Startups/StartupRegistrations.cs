@@ -17,6 +17,7 @@ using Paperless.Mcp.Services.Foundations.DocumentTypes;
 using Paperless.Mcp.Services.Foundations.DownloadLinks;
 using Paperless.Mcp.Services.Foundations.GlobalSearches;
 using Paperless.Mcp.Services.Foundations.Healths;
+using Paperless.Mcp.Services.Foundations.Notes;
 using Paperless.Mcp.Services.Foundations.Statistics;
 using Paperless.Mcp.Services.Foundations.StoragePaths;
 using Paperless.Mcp.Services.Foundations.Tags;
@@ -29,6 +30,7 @@ using Paperless.Mcp.Services.Processings.CustomFields;
 using Paperless.Mcp.Services.Processings.Documents;
 using Paperless.Mcp.Services.Processings.DocumentTypes;
 using Paperless.Mcp.Services.Processings.Healths;
+using Paperless.Mcp.Services.Processings.Notes;
 using Paperless.Mcp.Services.Processings.StoragePaths;
 using Paperless.Mcp.Services.Processings.Tags;
 
@@ -67,6 +69,7 @@ namespace Paperless.Mcp.Exposers.Startups
             services.AddTransient<IStoragePathService, StoragePathService>();
             services.AddTransient<ICustomFieldService, CustomFieldService>();
             services.AddTransient<IDocumentService, DocumentService>();
+            services.AddTransient<IDocumentNoteService, DocumentNoteService>();
             services.AddTransient<IGlobalSearchService, GlobalSearchService>();
             services.AddTransient<ITaskService, TaskService>();
             services.AddTransient<IHealthService, HealthService>();
@@ -83,6 +86,7 @@ namespace Paperless.Mcp.Exposers.Startups
             services.AddTransient<IStoragePathProcessingService, StoragePathProcessingService>();
             services.AddTransient<ICustomFieldProcessingService, CustomFieldProcessingService>();
             services.AddTransient<ITagProcessingService, TagProcessingService>();
+            services.AddTransient<IDocumentNoteProcessingService, DocumentNoteProcessingService>();
 
             // Configuration Model: der Wert wird hier gelesen und hineingereicht, die Service
             // greift nicht selbst auf die Konfiguration zu.

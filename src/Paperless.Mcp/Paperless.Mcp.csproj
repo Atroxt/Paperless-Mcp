@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- Single source of truth fuer die Release-Version, siehe Directory.Build.props -->
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <RootNamespace>Paperless.Mcp</RootNamespace>
     <AssemblyName>Paperless.Mcp</AssemblyName>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>

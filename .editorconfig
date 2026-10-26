@@ -4,3 +4,18 @@ root = true
 # IDE0028: Collection-Initialisierung vereinfachen (z. B. "new()" -> "[]").
 # Bewusst aus: explizites "new()" bleibt erlaubt.
 dotnet_diagnostic.IDE0028.severity = none
+
+# S1125: Ueberfluessige boolesche Literale entfernen (z. B. "x is false" -> "!x").
+# Bewusst aus: das Projekt verwendet durchgaengig "x is false". Siehe die
+# Processing Services (if (confirm is false)) und die vielen
+# "string.IsNullOrWhiteSpace(x) is false". Das Ausrufezeichen geht beim
+# Ueberfliegen am leichtesten unter; bei Loeschentscheidungen ist das kein Detail.
+dotnet_diagnostic.S1125.severity = none
+
+# IDE0290: Primaeren Konstruktor verwenden.
+# Bewusst aus: das Projekt haelt Abhaengigkeiten durchgaengig in expliziten
+# Konstruktoren mit "private readonly"-Feldern. Parameter eines primaeren
+# Konstruktors sind dagegen veraenderbare Capture-Felder -- der Compiler schuetzt
+# sie nicht gegen spaeteres Zuweisen. Fuer Services und Broker ist das eine
+# Garantie weniger.
+dotnet_diagnostic.IDE0290.severity = none

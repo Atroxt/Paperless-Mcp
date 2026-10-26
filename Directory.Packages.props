@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup Label="MCP">
-    <PackageVersion Include="ModelContextProtocol" Version="2.2.0" />
-    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
+    <PackageVersion Include="ModelContextProtocol" Version="2.3.0" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup Label="API-Broker und Exceptions">
