@@ -71,7 +71,7 @@ die Anmeldedaten tragen.
 Gegen eine echte Instanz (Paperless-ngx v3.3.2) ist der Durchstich für alle sechs Entities
 verifiziert: über MCP angelegt, gelesen, geändert, seitenweise aufgelistet und gelöscht,
 dazu die Fehlerabbildung bei fehlender Ressource und doppeltem Namen. Notizen sind
-ebenfalls gegen die laufende Instanz geprüft — ohne das Ändern, das es dort nicht gibt.
+gegen v3.3.4 geprüft — ohne das Ändern, das es dort nicht gibt.
 
 Dokumente lassen sich lesen und ändern. Das Ändern nutzt **PATCH**: nur die
 übergebenen Felder werden geschrieben, alles andere bleibt — einschließlich des
