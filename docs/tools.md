@@ -2,8 +2,8 @@
 
 [Zurück zur Übersicht](../README.md)
 
-Der Server stellt **42 Tools** im HTTP-Transport bereit und **43** über stdio — die
-beiden Pfad-Werkzeuge gibt es nur dort, den Einmal-Link nur im HTTP-Transport.
+Der Server stellt **46 Tools** im HTTP-Transport bereit und ebenfalls **46** über stdio —
+die beiden Pfad-Werkzeuge gibt es nur dort, die beiden Einmal-Links nur im HTTP-Transport.
 
 | Tool | Zweck |
 | --- | --- |
@@ -48,6 +48,9 @@ beiden Pfad-Werkzeuge gibt es nur dort, den Einmal-Link nur im HTTP-Transport.
 | `paperless_documents_reprocess` | Dokument neu einlesen (Trockenlauf per Default) |
 | `paperless_documents_bulk_update` | Zuordnungen und Tags vieler Dokumente auf einmal ändern (Trockenlauf per Default) |
 | `paperless_documents_bulk_delete` | Viele Dokumente auf einmal löschen (Trockenlauf per Default) |
+| `paperless_document_notes_list` | Notizen eines Dokuments auflisten |
+| `paperless_document_notes_create` | Notiz an ein Dokument hängen |
+| `paperless_document_notes_delete` | Notiz löschen (Trockenlauf per Default) |
 | `paperless_tasks_get` | Verarbeitungsauftrag nachschlagen |
 | `paperless_documents_upload_from_path` | Datei vom Pfad hochladen — **nur stdio** |
 | `paperless_documents_download_to_path` | Dokument in eine Datei schreiben — **nur stdio** |
@@ -67,12 +70,40 @@ die Anmeldedaten tragen.
 
 Gegen eine echte Instanz (Paperless-ngx v3.3.2) ist der Durchstich für alle sechs Entities
 verifiziert: über MCP angelegt, gelesen, geändert, seitenweise aufgelistet und gelöscht,
-dazu die Fehlerabbildung bei fehlender Ressource und doppeltem Namen.
+dazu die Fehlerabbildung bei fehlender Ressource und doppeltem Namen. Notizen sind
+ebenfalls gegen die laufende Instanz geprüft — ohne das Ändern, das es dort nicht gibt.
 
 Dokumente lassen sich lesen und ändern. Das Ändern nutzt **PATCH**: nur die
 übergebenen Felder werden geschrieben, alles andere bleibt — einschließlich des
 extrahierten Textes. Eine Referenz zu **leeren** (Korrespondent entfernen) ist noch nicht
 möglich, bei Tags und Feldwerten geht es über eine leere Liste.
+
+## Notizen an Dokumenten
+
+Notizen hängen immer an genau einem Dokument; eine Notiz ohne Dokument gibt es nicht.
+Deshalb verlangen alle drei Werkzeuge die `documentId`.
+
+**Es gibt kein Ändern.** Die Paperless-API kennt für Notizen nur Anlegen und Löschen —
+wer eine Notiz berichtigen will, legt eine neue an und löscht die alte. Das ist keine
+Lücke dieses Servers, sondern die Form der API.
+
+Anlegen und Löschen geben die **vollständige Notizliste des Dokuments** zurück, nicht nur
+die betroffene Notiz. Ein zusätzlicher Lese-Aufruf erübrigt sich damit.
+
+```json
+[{ "id": 14, "note": "Rechnung geprüft", "created": "2026-02-11T09:12:44+00:00",
+   "user": 3, "document": 4712 }]
+```
+
+Zwei Dinge glättet der Server dabei:
+
+- **Das Feld `user`.** Je nach Paperless-Version kommt es als Zahl, als eingebettetes
+  Objekt oder gar nicht. Ein eigener JSON-Konverter im Broker macht daraus immer eine
+  Zahl oder `null`. Diese Versionsunterschiede gehören in den Broker, nicht ins Modell.
+- **Das Feld `document`.** Paperless liefert es in der Notizliste nicht mit; der Dienst
+  trägt es nach, damit eine Notiz auch einzeln betrachtet weiß, wohin sie gehört.
+
+Der Text ist auf **10000 Zeichen** begrenzt.
 
 ## Löschen und andere destruktive Vorgänge
 
@@ -89,9 +120,24 @@ würde und **wen es trifft**:
 
 Die Zahl ist der Punkt: „hängt an 143 Dokumenten" ist eine andere Entscheidung als „hängt
 an keinem". Betroffen sind `paperless_*_delete` für alle fünf Ordnungsmerkmale, das
-Löschen von Dokumenten einzeln und im Bund, `paperless_documents_bulk_update`
-und `paperless_documents_reprocess` — letzteres, weil es den
-erkannten Text neu erzeugt und von Hand korrigierte Inhalte vernichtet.
+Löschen von Dokumenten einzeln und im Bund, `paperless_documents_bulk_update`,
+`paperless_documents_reprocess` — letzteres, weil es den erkannten Text neu erzeugt und
+von Hand korrigierte Inhalte vernichtet — und `paperless_document_notes_delete`.
+
+Bei Notizen zählt nicht die Reichweite, sondern der **Inhalt**: eine Notiz-Id sagt nichts
+darüber, was man gerade wegzuwerfen im Begriff ist. Der Bericht nennt den Text deshalb
+mit, gekürzt auf 120 Zeichen:
+
+```json
+{ "documentId": 4712, "noteId": 14, "note": "Rechnung geprüft", "noteCount": 2,
+  "removed": false,
+  "summary": "Dry run: note 14 on document 4712 would be deleted. Its text is:
+             \"Rechnung geprüft\". The document then carries 2 notes.
+             Call again with confirm set to true to actually delete it." }
+```
+
+Eine Notiz-Id, die das Dokument gar nicht trägt, wird **abgewiesen**. Paperless ließe das
+DELETE stillschweigend ins Leere laufen, und der Aufrufer hielte sich für erfolgreich.
 
 Durchgesetzt wird das in der Processing-Schicht, nicht im Tool: die Foundation Services
 löschen weiterhin bedingungslos, nur erreicht sie niemand mehr direkt.

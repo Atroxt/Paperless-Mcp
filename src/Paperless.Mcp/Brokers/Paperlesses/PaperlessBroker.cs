@@ -22,6 +22,10 @@ namespace Paperless.Mcp.Brokers.Paperlesses
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+
+            // Notizen sind der einzige Endpunkt, dessen Form zwischen Paperless-Versionen
+            // schwankt; der Converter glaettet das hier und nicht im Modell.
+            Converters = { new DocumentNoteJsonConverter() },
         };
 
         public PaperlessBroker(
@@ -230,6 +234,19 @@ namespace Paperless.Mcp.Brokers.Paperlesses
 
         private async ValueTask DeleteAsync(string relativeUrl) =>
             await this.apiClient.DeleteContentAsync(relativeUrl);
+
+        // Der Notiz-Endpunkt antwortet auf DELETE mit der verbliebenen Liste statt mit
+        // 204. DeleteContentAsync kennt keinen Rueckgabetyp, SendHttpRequestAsync schon
+        // -- und laeuft durch dieselbe Fehlerbehandlung wie alle anderen Aufrufe.
+        private async ValueTask<TResult> DeleteAsync<TResult>(string relativeUrl) =>
+            await this.apiClient.SendHttpRequestAsync<object?, TResult>(
+                method: "DELETE",
+                relativeUrl: relativeUrl,
+                content: null,
+                mediaType: "application/json",
+                ignoreDefaultValues: false,
+                serializationFunction: Serialize,
+                deserializationFunction: Deserialize<TResult>);
 
         private static ValueTask<T> Deserialize<T>(string content) =>
             new(JsonSerializer.Deserialize<T>(content, SerializerOptions)!);
